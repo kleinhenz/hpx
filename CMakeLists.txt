@@ -1175,129 +1175,6 @@ hpx_check_for_mm_prefetch(
 hpx_check_for_unistd_h(
   DEFINITIONS HPX_HAVE_UNISTD_H)
 
-if(NOT WIN32)
-  ##############################################################################
-  # Macro definitions for system headers
-  ##############################################################################
-  add_definitions(-D_GNU_SOURCE)
-  if(APPLE)
-    hpx_add_config_define(BOOST_HAS_INT128)
-  endif()
-
-  ##############################################################################
-  # System libraries
-  ##############################################################################
-  if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-    hpx_libraries(dl)
-  endif()
-
-  if(NOT APPLE AND NOT ("${HPX_PLATFORM_UC}" STREQUAL "ANDROID"))
-    hpx_libraries(rt)
-  endif()
-
-  if("${HPX_PLATFORM_UC}" STREQUAL "ANDROID")
-    hpx_libraries(log)
-  endif()
-
-  if(APPLE)
-    hpx_add_compile_flag_if_available(-ftemplate-depth=256 LANGUAGES CXX)
-  endif()
-endif()
-
-if(WIN32)
-  if(MSVC)
-    enable_language(ASM_MASM)
-
-    hpx_add_target_compile_option(-Ox CONFIGURATIONS Release)
-
-    # even VS2017 has an ICE when compiling with -Ob2
-    hpx_add_target_compile_option(-Ob1 CONFIGURATIONS Release)
-
-    if(NOT HPX_WITH_AWAIT)
-      # /RTC1 is incompatible with /await
-      hpx_add_target_compile_option(/RTC1 CONFIGURATIONS Debug)
-    else()
-      hpx_remove_target_compile_option(/RTC1 CONFIGURATIONS Debug)
-    endif()
-
-    # VS2012 and above has a special flag for improving the debug experience by
-    # adding more symbol information to the build (-d2Zi)
-    hpx_add_target_compile_option(-d2Zi+ CONFIGURATIONS RelWithDebInfo)
-
-    # VS2013 and above know how to do link time constant data segment folding
-    # VS2013 update 2 and above know how to remove debug information for
-    #     non-referenced functions and data (-Zc:inline)
-    hpx_add_target_compile_option(-Zc:inline)
-    hpx_add_target_compile_option(-Gw
-      CONFIGURATIONS Release RelWithDebInfo MinSizeRelease)
-    hpx_add_target_compile_option(-Zo CONFIGURATIONS RelWithDebInfo)
-    if(HPX_WITH_DATAPAR_VC)
-      hpx_add_target_compile_option(-std:c++latest)
-      hpx_add_config_cond_define(_HAS_AUTO_PTR_ETC 1)
-    endif()
-
-    # Exceptions
-    hpx_add_target_compile_option(-EHsc)
-    if(MSVC14)
-      # assume conforming (throwing) operator new implementations
-      hpx_add_target_compile_option(-Zc:throwingNew)
-
-      # enable faster linking (requires VS2015 Update1)
-      # disabled for now as this flag crashes debugger
-      # hpx_remove_link_flag(/debug CONFIGURATIONS Debug)
-      # hpx_add_link_flag(/debug:fastlink CONFIGURATIONS Debug)
-
-      # Update 2 requires to set _ENABLE_ATOMIC_ALIGNMENT_FIX for it to compile
-      # atomics
-      hpx_add_config_cond_define(_ENABLE_ATOMIC_ALIGNMENT_FIX)
-
-      # Update 3 allows to flag rvalue misuses and enforces strict string const-
-      # qualification conformance
-      hpx_add_target_compile_option(-Zc:rvalueCast)
-      hpx_add_target_compile_option(-Zc:strictStrings)
-    endif()
-
-    # Runtime type information
-    hpx_add_target_compile_option(-GR)
-    # Multiprocessor build
-    hpx_add_target_compile_option(-MP)
-    # Increase the maximum size of object file sections
-    hpx_add_target_compile_option(-bigobj)
-  endif()
-
-  hpx_libraries(psapi shlwapi)
-
-  ##############################################################################
-  # Macro definitions for system headers
-  ##############################################################################
-  add_definitions(-D_WINDOWS)
-  add_definitions(-D_WIN32)
-  hpx_add_config_cond_define(_WIN32_WINNT 0x0601)
-  hpx_add_config_cond_define(_SCL_SECURE_NO_WARNINGS)
-  hpx_add_config_cond_define(_CRT_SECURE_NO_WARNINGS)
-  hpx_add_config_cond_define(_SCL_SECURE_NO_DEPRECATE)
-  hpx_add_config_cond_define(_CRT_SECURE_NO_DEPRECATE)
-  hpx_add_config_cond_define(_CRT_NONSTDC_NO_WARNINGS)
-  hpx_add_config_cond_define(_WINSOCK_DEPRECATED_NO_WARNINGS)
-  hpx_add_config_cond_define(_CRT_NON_CONFORMING_SWPRINTFS)
-
-  ##############################################################################
-  # Boost
-  ##############################################################################
-
-  hpx_add_config_cond_define(BOOST_USE_WINDOWS_H)
-  if (NOT Boost_USE_STATIC_LIBS)
-    hpx_add_config_cond_define(BOOST_SERIALIZATION_DYN_LINK)
-  endif()
-  if(NOT CMAKE_CL_64)
-    hpx_add_config_cond_define(BOOST_NO_ALIGNMENT)
-  endif()
-  if(NOT HPX_WITH_GENERIC_CONTEXT_COROUTINES)
-    hpx_add_config_define(HPX_HAVE_FIBER_BASED_COROUTINES)
-  endif()
-  hpx_add_config_cond_define(PSAPI_VERSION 1)
-endif()
-
 # Configure Warnings
 if(HPX_WITH_COMPILER_WARNINGS)
   if(MSVC) # Adding special warning settings for the MSVC compiler ...
@@ -1625,6 +1502,130 @@ if(WIN32)
     endif()
   endif()
 endif()
+
+if(NOT WIN32)
+  ##############################################################################
+  # Macro definitions for system headers
+  ##############################################################################
+  add_definitions(-D_GNU_SOURCE)
+  if(APPLE)
+    hpx_add_config_define(BOOST_HAS_INT128)
+  endif()
+
+  ##############################################################################
+  # System libraries
+  ##############################################################################
+  if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+    hpx_libraries(dl)
+  endif()
+
+  if(NOT APPLE AND NOT ("${HPX_PLATFORM_UC}" STREQUAL "ANDROID"))
+    hpx_libraries(rt)
+  endif()
+
+  if("${HPX_PLATFORM_UC}" STREQUAL "ANDROID")
+    hpx_libraries(log)
+  endif()
+
+  if(APPLE)
+    hpx_add_compile_flag_if_available(-ftemplate-depth=256 LANGUAGES CXX)
+  endif()
+endif()
+
+if(WIN32)
+  if(MSVC)
+    enable_language(ASM_MASM)
+
+    hpx_add_target_compile_option(-Ox CONFIGURATIONS Release)
+
+    # even VS2017 has an ICE when compiling with -Ob2
+    hpx_add_target_compile_option(-Ob1 CONFIGURATIONS Release)
+
+    if(NOT HPX_WITH_AWAIT)
+      # /RTC1 is incompatible with /await
+      hpx_add_target_compile_option(/RTC1 CONFIGURATIONS Debug)
+    else()
+      hpx_remove_target_compile_option(/RTC1 CONFIGURATIONS Debug)
+    endif()
+
+    # VS2012 and above has a special flag for improving the debug experience by
+    # adding more symbol information to the build (-d2Zi)
+    hpx_add_target_compile_option(-d2Zi+ CONFIGURATIONS RelWithDebInfo)
+
+    # VS2013 and above know how to do link time constant data segment folding
+    # VS2013 update 2 and above know how to remove debug information for
+    #     non-referenced functions and data (-Zc:inline)
+    hpx_add_target_compile_option(-Zc:inline)
+    hpx_add_target_compile_option(-Gw
+      CONFIGURATIONS Release RelWithDebInfo MinSizeRelease)
+    hpx_add_target_compile_option(-Zo CONFIGURATIONS RelWithDebInfo)
+    if(HPX_WITH_DATAPAR_VC)
+      hpx_add_target_compile_option(-std:c++latest)
+      hpx_add_config_cond_define(_HAS_AUTO_PTR_ETC 1)
+    endif()
+
+    # Exceptions
+    hpx_add_target_compile_option(-EHsc)
+    if(MSVC14)
+      # assume conforming (throwing) operator new implementations
+      hpx_add_target_compile_option(-Zc:throwingNew)
+
+      # enable faster linking (requires VS2015 Update1)
+      # disabled for now as this flag crashes debugger
+      # hpx_remove_link_flag(/debug CONFIGURATIONS Debug)
+      # hpx_add_link_flag(/debug:fastlink CONFIGURATIONS Debug)
+
+      # Update 2 requires to set _ENABLE_ATOMIC_ALIGNMENT_FIX for it to compile
+      # atomics
+      hpx_add_config_cond_define(_ENABLE_ATOMIC_ALIGNMENT_FIX)
+
+      # Update 3 allows to flag rvalue misuses and enforces strict string const-
+      # qualification conformance
+      hpx_add_target_compile_option(-Zc:rvalueCast)
+      hpx_add_target_compile_option(-Zc:strictStrings)
+    endif()
+
+    # Runtime type information
+    hpx_add_target_compile_option(-GR)
+    # Multiprocessor build
+    hpx_add_target_compile_option(-MP)
+    # Increase the maximum size of object file sections
+    hpx_add_target_compile_option(-bigobj)
+  endif()
+
+  hpx_libraries(psapi shlwapi)
+
+  ##############################################################################
+  # Macro definitions for system headers
+  ##############################################################################
+  add_definitions(-D_WINDOWS)
+  add_definitions(-D_WIN32)
+  hpx_add_config_cond_define(_WIN32_WINNT 0x0601)
+  hpx_add_config_cond_define(_SCL_SECURE_NO_WARNINGS)
+  hpx_add_config_cond_define(_CRT_SECURE_NO_WARNINGS)
+  hpx_add_config_cond_define(_SCL_SECURE_NO_DEPRECATE)
+  hpx_add_config_cond_define(_CRT_SECURE_NO_DEPRECATE)
+  hpx_add_config_cond_define(_CRT_NONSTDC_NO_WARNINGS)
+  hpx_add_config_cond_define(_WINSOCK_DEPRECATED_NO_WARNINGS)
+  hpx_add_config_cond_define(_CRT_NON_CONFORMING_SWPRINTFS)
+
+  ##############################################################################
+  # Boost
+  ##############################################################################
+
+  hpx_add_config_cond_define(BOOST_USE_WINDOWS_H)
+  if (NOT Boost_USE_STATIC_LIBS)
+    hpx_add_config_cond_define(BOOST_SERIALIZATION_DYN_LINK)
+  endif()
+  if(NOT CMAKE_CL_64)
+    hpx_add_config_cond_define(BOOST_NO_ALIGNMENT)
+  endif()
+  if(NOT HPX_WITH_GENERIC_CONTEXT_COROUTINES)
+    hpx_add_config_define(HPX_HAVE_FIBER_BASED_COROUTINES)
+  endif()
+  hpx_add_config_cond_define(PSAPI_VERSION 1)
+endif()
+
 
 ################################################################################
 
