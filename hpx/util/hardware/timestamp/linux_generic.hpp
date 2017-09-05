@@ -8,8 +8,6 @@
 #if !defined(HPX_UTIL_HARDWARE_TIMESTAMP_LINUX_GENERIC_HPP)
 #define HPX_UTIL_HARDWARE_TIMESTAMP_LINUX_GENERIC_HPP
 
-#if defined(__unix__)
-
 #include <cstdint>
 
 #include <time.h>
@@ -26,8 +24,6 @@ inline std::uint64_t timestamp()
 }
 
 }}}
-
-#endif
 
 #endif // HPX_UTIL_HARDWARE_TIMESTAMP_LINUX_GENERIC_HPP
 
