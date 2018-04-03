@@ -7,6 +7,11 @@
 
 #include <atomic>
 
+struct P {
+  long long x;
+  long long y;
+};
+
 int main()
 {
     std::atomic_flag af = ATOMIC_FLAG_INIT;
@@ -16,6 +21,10 @@ int main()
     std::atomic<int> ai;
     ai.store(0);
     int i = ai.load();
+
+    std::atomic<P> ap;
+    ap.store({0,0});
+    P p = ap.load();
 
     std::memory_order mo;
     mo = std::memory_order_relaxed;
